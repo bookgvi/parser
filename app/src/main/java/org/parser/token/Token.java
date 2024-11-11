@@ -18,7 +18,7 @@ public class Token {
         this.line = line;
     }
 
-    public Token.Builder builder() {
+    public static Token.Builder builder() {
         return new Token.Builder();
     }
 
@@ -52,6 +52,11 @@ public class Token {
 
     public void setLine(int line) {
         this.line = line;
+    }
+
+    @Override
+    public String toString() {
+        return kind + " " + lexeme + " " + value;
     }
 
     public static class Builder {
