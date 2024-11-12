@@ -1,0 +1,17 @@
+var a = 1;
+var b = 2;
+var c = a * b + 12;
+print "before block: a = " + a;
+print "before block: b = " + b;
+print "before block: c = a * b + 12 = " + c;
+{
+    a = 10;
+    var b = 20;
+    var c = a + b;
+    print "in block: a = " + a + " (assign)";
+    print "in block: b = " + b;
+    print "in block: c = a + b = " + c;
+}
+print "after block: a = " + a;
+print "after block: b = " + b;
+print "after block: c = " + c;

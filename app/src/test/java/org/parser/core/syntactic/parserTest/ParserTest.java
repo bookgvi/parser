@@ -1,4 +1,4 @@
-package org.parser.core.lexic.parserTest;
+package org.parser.core.syntactic.parserTest;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -23,7 +23,7 @@ public class ParserTest {
     @Test
     public void simpleTestTokenParser() throws IOException {
         File file = new File(
-                "/Users/bookgvi/IdeaProjects/parser/app/src/test/java/org/parser/core/lexic/parserTest/class.clazz");
+                "/Users/bookgvi/IdeaProjects/parser/app/src/test/java/org/parser/core/syntactic/parserTest/class.clazz");
         try (BufferedReader buffer = new BufferedReader(new InputStreamReader(new FileInputStream(file)))) {
             char[] chars = buffer.lines().collect(Collectors.joining("\n")).toCharArray();
             Scanner scanner = new Scanner(chars);
@@ -39,7 +39,7 @@ public class ParserTest {
     @Test
     public void simpleTestTokenParserWithErrors() throws IOException {
         File file = new File(
-                "/Users/bookgvi/IdeaProjects/parser/app/src/test/java/org/parser/core/lexic/parserTest/class_with_errors.clazz");
+                "/Users/bookgvi/IdeaProjects/parser/app/src/test/java/org/parser/core/syntactic/parserTest/class_with_errors.clazz");
         try (BufferedReader buffer = new BufferedReader(new InputStreamReader(new FileInputStream(file)))) {
             char[] chars = buffer.lines().collect(Collectors.joining("\n")).toCharArray();
             Scanner scanner = new Scanner(chars);
@@ -55,7 +55,7 @@ public class ParserTest {
     @Test
     public void simpleTestTokenParserForString() throws IOException {
         File file = new File(
-                "/Users/bookgvi/IdeaProjects/parser/app/src/test/java/org/parser/core/lexic/parserTest/strExpr.test");
+                "/Users/bookgvi/IdeaProjects/parser/app/src/test/java/org/parser/core/syntactic/parserTest/strExpr.test");
         try (BufferedReader buffer = new BufferedReader(new InputStreamReader(new FileInputStream(file)))) {
             char[] chars = buffer.lines().collect(Collectors.joining("\n")).toCharArray();
             Scanner scanner = new Scanner(chars);
@@ -70,7 +70,7 @@ public class ParserTest {
     @Test
     public void simpleTestTokenParserForStmts() throws IOException {
         File file = new File(
-                "/Users/bookgvi/IdeaProjects/parser/app/src/test/java/org/parser/core/lexic/parserTest/classWithStmts.clazz");
+                "/Users/bookgvi/IdeaProjects/parser/app/src/test/java/org/parser/core/syntactic/parserTest/classWithStmts.clazz");
         try (BufferedReader buffer = new BufferedReader(new InputStreamReader(new FileInputStream(file)))) {
             char[] chars = buffer.lines().collect(Collectors.joining("\n")).toCharArray();
             Scanner scanner = new Scanner(chars);
@@ -89,7 +89,7 @@ public class ParserTest {
     @Test
     public void simpleTestTokenParserForDeclaration() throws IOException {
         File file = new File(
-                "/Users/bookgvi/IdeaProjects/parser/app/src/test/java/org/parser/core/lexic/parserTest/classWithStmtsAndDeclarations.clazz");
+                "/Users/bookgvi/IdeaProjects/parser/app/src/test/java/org/parser/core/syntactic/parserTest/classWithStmtsAndDeclarations.clazz");
         try (BufferedReader buffer = new BufferedReader(new InputStreamReader(new FileInputStream(file)))) {
             char[] chars = buffer.lines().collect(Collectors.joining("\n")).toCharArray();
             Scanner scanner = new Scanner(chars);
@@ -108,7 +108,7 @@ public class ParserTest {
     @Test
     public void simpleTestTokenParserForAssignment() throws IOException {
         File file = new File(
-                "/Users/bookgvi/IdeaProjects/parser/app/src/test/java/org/parser/core/lexic/parserTest/classWithAssignment.clazz");
+                "/Users/bookgvi/IdeaProjects/parser/app/src/test/java/org/parser/core/syntactic/parserTest/classWithAssignment.clazz");
         try (BufferedReader buffer = new BufferedReader(new InputStreamReader(new FileInputStream(file)))) {
             char[] chars = buffer.lines().collect(Collectors.joining("\n")).toCharArray();
             Scanner scanner = new Scanner(chars);
@@ -123,7 +123,7 @@ public class ParserTest {
     @Test
     public void simpleTestTokenParserForBlocks() throws IOException {
         File file = new File(
-                "/Users/bookgvi/IdeaProjects/parser/app/src/test/java/org/parser/core/lexic/parserTest/classWithBlocks.clazz");
+                "/Users/bookgvi/IdeaProjects/parser/app/src/test/java/org/parser/core/syntactic/parserTest/classWithBlocks.clazz");
         try (BufferedReader buffer = new BufferedReader(new InputStreamReader(new FileInputStream(file)))) {
             char[] chars = buffer.lines().collect(Collectors.joining("\n")).toCharArray();
             Scanner scanner = new Scanner(chars);

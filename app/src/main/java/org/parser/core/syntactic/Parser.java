@@ -179,7 +179,7 @@ public class Parser {
         while (match(TokenType.EQUAL_EQUAL, TokenType.BANG_EQUAL)) {
             Token operation = previous();
             Expr right = comparision();
-            return new Expr.BinaryExpr(expr, operation, right);
+            expr = new Expr.BinaryExpr(expr, operation, right);
         }
         return expr;
     }
@@ -194,7 +194,7 @@ public class Parser {
         while (match(TokenType.GREATER, TokenType.GREATER_EQUAL, TokenType.LESS, TokenType.LESS_EQUAL)) {
             Token operation = previous();
             Expr right = term();
-            return new Expr.BinaryExpr(expr, operation, right);
+            expr = new Expr.BinaryExpr(expr, operation, right);
         }
         return expr;
     }
@@ -209,7 +209,7 @@ public class Parser {
         while (match(TokenType.PLUS, TokenType.MINUS)) {
             Token operation = previous();
             Expr right = factor();
-            return new Expr.BinaryExpr(expr, operation, right);
+            expr = new Expr.BinaryExpr(expr, operation, right);
         }
         return expr;
     }
@@ -224,7 +224,7 @@ public class Parser {
         while (match(TokenType.STAR, TokenType.SLASH)) {
             Token operation = previous();
             Expr right = unary();
-            return new Expr.BinaryExpr(expr, operation, right);
+            expr = new Expr.BinaryExpr(expr, operation, right);
         }
         return expr;
     }
