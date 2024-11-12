@@ -20,13 +20,15 @@ import java.util.Optional;
  * exprStmt -> expression ';' ;
  * printStmt -> "print" expression ';' ;
  * <p>
- * expression -> equality* ;
+ * expression -> assignment ;
+ * assignment -> IDENTIFIER '=' assignemnt | equality ;
  * equality -> comparision (('==' | '!=') comparision)* ;
  * comparision -> term (('>' | '<' | '>=' | '<=') term)* ;
  * term -> factor (('+' | '-') factor)* ;
  * factor -> unary (('*' | '/') unary)* ;
  * unary -> ('!' | '-') unary | primary ;
- * primary -> NUMBER | STRING | "true" | "false" | "nill" | '(' expression ')' | IDENTIFIER ;
+ * primary -> NUMBER | STRING | "true" | "false" | "nill" | '(' expression ')' |
+ * IDENTIFIER ;
  */
 public class Parser {
     private final List<Token> tokens;
@@ -62,6 +64,7 @@ public class Parser {
 
     /**
      * declaration -> varDeclaration | statement ;
+     * 
      * @return Statement
      */
     Stmt declaration() {
@@ -79,6 +82,7 @@ public class Parser {
 
     /**
      * varDeclaration -> "var" IDENTIFIER ('=' expression)? ';' ;
+     * 
      * @return Statement
      */
     Stmt varDeclaration() {
@@ -93,6 +97,7 @@ public class Parser {
 
     /**
      * statement -> printStatement | exprStatement ;
+     * 
      * @return Statement
      */
     Stmt statement() {
@@ -104,6 +109,7 @@ public class Parser {
 
     /**
      * printStmt -> "print" expression ';' ;
+     * 
      * @return Statement
      */
     Stmt printStatemnet() {
@@ -111,9 +117,10 @@ public class Parser {
         consume(TokenType.SEMICOLON, "Expected ';'");
         return new Stmt.PrintStmt(expr);
     }
-    
+
     /**
      * exprStmt -> expression ';' ;
+     * 
      * @return Statement
      */
     Stmt exprStatemnet() {
@@ -123,7 +130,26 @@ public class Parser {
     }
 
     Expr expression() {
-        return equality();
+        return assignment();
+    }
+
+    /**
+     * assignment -> IDENTIFIER '=' assignment | equality ;
+     * 
+     * @return Expression
+     */
+    Expr assignment() {
+        Expr expr = equality();
+        if (match(TokenType.EQUAL)) {
+            Token equals = previous();
+            Expr value = assignment();
+            if (expr instanceof Expr.VariableExpr) {
+                Token name = ((Expr.VariableExpr) expr).getName();
+                return new Expr.AssignExpr(name, value);
+            }
+            throw new RuntimeError(equals, "Invalid assignment target.");
+        }
+        return expr;
     }
 
     /**

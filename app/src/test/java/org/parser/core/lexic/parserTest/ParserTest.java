@@ -99,4 +99,21 @@ public class ParserTest {
             assertTrue(statements.get(3) instanceof Stmt.PrintStmt);
         }
     }
+
+    @Test
+    public void simpleTestTokenParserForAssignment() throws IOException {
+        File file = new File("/Users/bookgvi/IdeaProjects/parser/app/src/test/java/org/parser/core/lexic/parserTest/classWithAssignment.clazz");
+        try (BufferedReader buffer = new BufferedReader(new InputStreamReader(new FileInputStream(file)))) {
+            char[] chars = buffer.lines().collect(Collectors.joining("\n")).toCharArray();
+            Scanner scanner = new Scanner(chars);
+            List<Token> tokens = scanner.scan();
+            Parser parser = new Parser(tokens);
+            List<Stmt> statements = parser.parseStmt();
+            assertFalse(statements.isEmpty());
+            assertEquals(7, statements.size());
+            // assertTrue(statements.get(4) instanceof Stmt.VarStmt);
+            // assertTrue(statements.get(5) instanceof Expr.AssignExpr);
+            // assertTrue(statements.get(6) instanceof Stmt.VarStmt);
+        }
+    }
 }

@@ -46,7 +46,7 @@ public abstract class Expr implements VisitableExpr {
         @Override
         public final <R, A> A accept(Visitor<R, A> visitor, A... params) {
             return visitor.visit(this, params);
-        }        
+        }
     }
 
     public static class BinaryExpr extends Expr {
@@ -59,12 +59,15 @@ public abstract class Expr implements VisitableExpr {
             this.operation = operation;
             this.right = right;
         }
+
         public Expr getLeft() {
             return left;
         }
+
         public Token getOperation() {
             return operation;
         }
+
         public Expr getRight() {
             return right;
         }
@@ -97,29 +100,58 @@ public abstract class Expr implements VisitableExpr {
     public static class VariableExpr extends Expr {
         private final Token name;
 
-		public VariableExpr(Token name) {
-			this.name = name;
-		}
+        public VariableExpr(Token name) {
+            this.name = name;
+        }
 
-		public Token getName() {
-			return name;
-		}
+        public Token getName() {
+            return name;
+        }
 
         @SafeVarargs
-		@Override
-		public final <R, A> A accept(Visitor<R, A> visitor, A... params) {
+        @Override
+        public final <R, A> A accept(Visitor<R, A> visitor, A... params) {
             return visitor.visit(this, params);
-		}
-        
+        }
+    }
+
+    public static class AssignExpr extends Expr {
+        private final Token name;
+        private final Expr value;
+
+        public AssignExpr(Token name, Expr value) {
+            this.name = name;
+            this.value = value;
+        }
+
+        public Token getName() {
+            return name;
+        }
+
+        public Expr getValue() {
+            return value;
+        }
+
+        @SafeVarargs
+        @Override
+        public final <R, A> A accept(Visitor<R, A> visitor, A... params) {
+            return visitor.visit(this, params);
+        }
     }
 
     @SuppressWarnings("unchecked")
     public static interface Visitor<R, A> {
         A visit(Expr.LiteralExpr expr, A... params);
+
         A visit(Expr.UnaryExpr expr, A... params);
+
         A visit(Expr.BinaryExpr expr, A... params);
+
         A visit(Expr.GroupingExpr expr, A... params);
+
         A visit(Expr.VariableExpr expr, A... params);
+
+        A visit(Expr.AssignExpr expr, A... params);
     }
 
 }
