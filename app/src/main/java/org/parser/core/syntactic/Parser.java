@@ -3,6 +3,7 @@ package org.parser.core.syntactic;
 import org.parser.token.Token;
 import org.parser.token.TokenType;
 import org.parser.core.nodes.Expr;
+import org.parser.core.nodes.Stmt;
 import org.parser.error.RuntimeError;
 
 import java.util.List;
@@ -10,7 +11,12 @@ import java.util.ArrayList;
 import java.util.Optional;
 
 /**
- * program -> expression* EOF ;
+ * program -> statement* EOF ;
+ * <p>
+ * statement -> exprStmt | printStmt ;
+ * exprStmt -> expression ';' ;
+ * printStmt -> "print" expression ';' ;
+ * <p>
  * expression -> equality* ;
  * equality -> comparision (('==' | '!=') comparision)* ;
  * comparision -> term (('>' | '<' | '>=' | '<=') term)* ;
@@ -29,7 +35,7 @@ public class Parser {
         this.current = 0;
     }
 
-    public List<Expr> parse() {
+    public List<Expr> parseExpr() {
         List<Expr> expressions = new ArrayList<>();
         while (isNotEnd()) {
             try {
@@ -41,6 +47,37 @@ public class Parser {
             }
         }
         return expressions;
+    }
+
+    public List<Stmt> parseStmt() {
+        List<Stmt> statements = new ArrayList<>();
+        while (isNotEnd()) {
+            try {
+                statements.add(statement());
+            } catch (RuntimeError re) {
+                System.out.println(re.getMessage());
+            }
+        }
+        return statements;
+    }
+
+    Stmt statement() {
+        if (match(TokenType.PRINT)) {
+            return printStatemnet();
+        }
+        return exprStatemnet();
+    }
+
+    Stmt printStatemnet() {
+        Expr expr = expression();
+        consume(TokenType.SEMICOLON, "Expected ';'");
+        return new Stmt.PrintStmt(expr);
+    }
+    
+    Stmt exprStatemnet() {
+        Expr expr = expression();
+        consume(TokenType.SEMICOLON, "Expected ';'");
+        return new Stmt.ExprStmt(expr);
     }
 
     Expr expression() {
