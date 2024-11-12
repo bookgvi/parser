@@ -16,9 +16,10 @@ import java.util.Optional;
  * declaration -> varDeclaration | statement ;
  * varDeclaration -> "var" IDENTIFIER ('=' expression)? ';' ;
  * <p>
- * statement -> exprStmt | printStmt ;
+ * statement -> exprStmt | printStmt | blockStmt ;
  * exprStmt -> expression ';' ;
  * printStmt -> "print" expression ';' ;
+ * blockStmt -> '{' declaration* '}'
  * <p>
  * expression -> assignment ;
  * assignment -> IDENTIFIER '=' assignemnt | equality ;
@@ -104,7 +105,23 @@ public class Parser {
         if (match(TokenType.PRINT)) {
             return printStatemnet();
         }
+        if (match(TokenType.LEFT_BRACE)) {
+            return block();
+        }
         return exprStatemnet();
+    }
+
+    /**
+     * block -> '{' declaration* '}'
+     * @return Statement;
+     */
+    Stmt block() {
+        List<Stmt> statements = new ArrayList<>();
+        while (isNotEnd() && !check(TokenType.RIGHT_BRACE)) {
+            statements.add(declaration());
+        }
+        consume(TokenType.RIGHT_BRACE, "Expected '{' after block statement");
+        return new Stmt.BlockStmt(statements);
     }
 
     /**
