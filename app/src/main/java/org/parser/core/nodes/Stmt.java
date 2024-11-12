@@ -1,5 +1,7 @@
 package org.parser.core.nodes;
 
+import org.parser.token.Token;
+
 public abstract class Stmt implements VisitableStmt {
     
     @SuppressWarnings("unchecked")
@@ -40,7 +42,31 @@ public abstract class Stmt implements VisitableStmt {
         @Override
         public final <R, A> A accept(Visitor<R, A> visitor, A... params) {
             return visitor.visit(this, params);
-        }
+        }   
+    }
+
+    public static class VarStmt extends Stmt {
+        private final Token name;
+        private final Expr initializer;
+
+		public VarStmt(Token name, Expr init) {
+			this.name = name;
+            this.initializer = init;
+		}
+
+		public Token getName() {
+			return name;
+		}
+
+        @SafeVarargs
+		@Override
+		public final <R, A> A accept(Visitor<R, A> visitor, A... params) {
+            return visitor.visit(this, params);
+		}
+
+		public Expr getInitializer() {
+			return initializer;
+		}
         
     }
 
@@ -48,5 +74,6 @@ public abstract class Stmt implements VisitableStmt {
     public static interface Visitor<R, A> {
         A visit(Stmt.ExprStmt stmt, A... params);
         A visit(Stmt.PrintStmt stmt, A... params);
+        A visit(Stmt.VarStmt stmt, A... params);
     }
 }

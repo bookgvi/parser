@@ -11,7 +11,10 @@ import java.util.ArrayList;
 import java.util.Optional;
 
 /**
- * program -> statement* EOF ;
+ * program -> declaration* EOF ;
+ * <p>
+ * declaration -> varDeclaration | statement ;
+ * varDeclaration -> "var" IDENTIFIER ('=' expression)? ';' ;
  * <p>
  * statement -> exprStmt | printStmt ;
  * exprStmt -> expression ';' ;
@@ -23,7 +26,7 @@ import java.util.Optional;
  * term -> factor (('+' | '-') factor)* ;
  * factor -> unary (('*' | '/') unary)* ;
  * unary -> ('!' | '-') unary | primary ;
- * primary -> NUMBER | STRING | "true" | "false" | "nill" | '(' expression ')' ;
+ * primary -> NUMBER | STRING | "true" | "false" | "nill" | '(' expression ')' | IDENTIFIER ;
  */
 public class Parser {
     private final List<Token> tokens;
@@ -52,13 +55,32 @@ public class Parser {
     public List<Stmt> parseStmt() {
         List<Stmt> statements = new ArrayList<>();
         while (isNotEnd()) {
-            try {
-                statements.add(statement());
-            } catch (RuntimeError re) {
-                System.out.println(re.getMessage());
-            }
+            statements.add(declaration());
         }
         return statements;
+    }
+
+    Stmt declaration() {
+        try {
+            if (match(TokenType.VAR)) {
+                return varDeclaration();
+            }
+            return statement();
+        } catch (RuntimeError re) {
+            System.out.println(re.getMessage());
+            synchronize();
+            return null;
+        }
+    }
+
+    Stmt varDeclaration() {
+        Token name = consume(TokenType.IDENTIFIER, "variable name expected");
+        Expr init = null;
+        if (match(TokenType.EQUAL)) {
+            init = expression();
+        }
+        consume(TokenType.SEMICOLON, "Expected ';' after var declaration");
+        return new Stmt.VarStmt(name, init);
     }
 
     Stmt statement() {
@@ -159,7 +181,7 @@ public class Parser {
     }
 
     /**
-     * primary -> NUMBER | STRING | "true" | "false" | "nil" | '(' expression ')' ;
+     * primary -> NUMBER | STRING | "true" | "false" | "nil" | '(' expression ')' | IDENTIFIER ;
      * 
      * @return Expression;
      */
@@ -172,6 +194,7 @@ public class Parser {
             consume(TokenType.RIGHT_BRACE, "Expected ')'");
             return new Expr.GroupingExpr(expr);
         }
+        if (match(TokenType.IDENTIFIER)) return new Expr.VariableExpr(previous());
         return new Expr.LiteralExpr(null);
     }
 
@@ -216,5 +239,10 @@ public class Parser {
 
     boolean isNotEnd() {
         return current < tokens.size() && tokens.get(current).getKind() != TokenType.EOF;
+    }
+
+    Token synchronize() {
+        Token token = advance();
+        return token;
     }
 }

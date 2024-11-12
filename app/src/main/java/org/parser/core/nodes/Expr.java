@@ -92,7 +92,25 @@ public abstract class Expr implements VisitableExpr {
         public final <R, A> A accept(Visitor<R, A> visitor, A... params) {
             return visitor.visit(this, params);
         }
+    }
 
+    public static class VariableExpr extends Expr {
+        private final Token name;
+
+		public VariableExpr(Token name) {
+			this.name = name;
+		}
+
+		public Token getName() {
+			return name;
+		}
+
+        @SafeVarargs
+		@Override
+		public final <R, A> A accept(Visitor<R, A> visitor, A... params) {
+            return visitor.visit(this, params);
+		}
+        
     }
 
     @SuppressWarnings("unchecked")
@@ -101,6 +119,7 @@ public abstract class Expr implements VisitableExpr {
         A visit(Expr.UnaryExpr expr, A... params);
         A visit(Expr.BinaryExpr expr, A... params);
         A visit(Expr.GroupingExpr expr, A... params);
+        A visit(Expr.VariableExpr expr, A... params);
     }
 
 }
