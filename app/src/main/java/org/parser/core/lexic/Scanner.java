@@ -104,9 +104,9 @@ public class Scanner {
         } while (isNotEnd() && !check('"'));
         advance();
         String lexeme = new String(chars, start, current - start);
-        String value = new String(chars, start - 1, current - start);
+        String value = new String(chars, start + 1, current - start - 2);
         Token token = addToken(TokenType.STRING, lexeme, value, line);
-        if (!isNotEnd()) {
+        if (!isNotEnd() && previous() != '"') {
             throw new RuntimeError(token, "Unclosed string");
         }
     }
@@ -136,7 +136,7 @@ public class Scanner {
     }
 
     char previous() {
-        return current > 0 && chars.length > current ? chars[current - 1] : CTRL_Z;
+        return current > 0 && chars.length > current - 1 ? chars[current - 1] : CTRL_Z;
     }
 
     Token addToken(TokenType type) {
