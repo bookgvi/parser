@@ -60,6 +60,10 @@ public class Parser {
         return statements;
     }
 
+    /**
+     * declaration -> varDeclaration | statement ;
+     * @return Statement
+     */
     Stmt declaration() {
         try {
             if (match(TokenType.VAR)) {
@@ -73,6 +77,10 @@ public class Parser {
         }
     }
 
+    /**
+     * varDeclaration -> "var" IDENTIFIER ('=' expression)? ';' ;
+     * @return Statement
+     */
     Stmt varDeclaration() {
         Token name = consume(TokenType.IDENTIFIER, "variable name expected");
         Expr init = null;
@@ -83,6 +91,10 @@ public class Parser {
         return new Stmt.VarStmt(name, init);
     }
 
+    /**
+     * statement -> printStatement | exprStatement ;
+     * @return Statement
+     */
     Stmt statement() {
         if (match(TokenType.PRINT)) {
             return printStatemnet();
@@ -90,12 +102,20 @@ public class Parser {
         return exprStatemnet();
     }
 
+    /**
+     * printStmt -> "print" expression ';' ;
+     * @return Statement
+     */
     Stmt printStatemnet() {
         Expr expr = expression();
         consume(TokenType.SEMICOLON, "Expected ';'");
         return new Stmt.PrintStmt(expr);
     }
     
+    /**
+     * exprStmt -> expression ';' ;
+     * @return Statement
+     */
     Stmt exprStatemnet() {
         Expr expr = expression();
         consume(TokenType.SEMICOLON, "Expected ';'");
