@@ -17,14 +17,16 @@ import java.util.Optional;
  * declaration -> varDeclaration | statement ;
  * varDeclaration -> "var" IDENTIFIER ('=' expression)? ';' ;
  * <p>
- * statement -> exprStmt| ifStmt | printStmt | blockStmt| whileStmt forLoopStmt ;
+ * statement -> exprStmt| ifStmt | printStmt | blockStmt| whileStmt forLoopStmt
+ * ;
  * <p>
  * ifStmt -> "if" '(' expression ')' statement ("else" statement)? ;
  * exprStmt -> expression ';' ;
  * printStmt -> "print" expression ';' ;
  * blockStmt -> '{' declaration* '}'
  * whileStmt -> "while" '(' expression ')' statement ;
- * forLoopStmt -> "for" '('(varDeclaration | exprStmt)? ';' expression? ';' expression? ')' statement ;
+ * forLoopStmt -> "for" '('(varDeclaration | exprStmt)? ';' expression? ';'
+ * expression? ')' statement ;
  * <p>
  * expression -> assignment ;
  * assignment -> IDENTIFIER '=' assignemnt | logic_or ;
@@ -34,8 +36,11 @@ import java.util.Optional;
  * comparision -> term (('>' | '<' | '>=' | '<=') term)* ;
  * term -> factor (('+' | '-') factor)* ;
  * factor -> unary (('*' | '/') unary)* ;
- * unary -> ('!' | '-') unary | primary ;
- * primary -> NUMBER | STRING | "true" | "false" | "nill" | '(' expression ')' | IDENTIFIER ;
+ * unary -> ('!' | '-') unary | prefixOps ;
+ * prefixOps -> ('--' | '++')? postfixOps ;
+ * postfixOps -> primary ('--' | '++')? ;
+ * primary -> NUMBER | STRING | "true" | "false" | "nill" | '(' expression ')' |
+ * IDENTIFIER ;
  */
 public class Parser {
     private final List<Token> tokens;
@@ -163,7 +168,7 @@ public class Parser {
             condition = new Expr.LiteralExpr(true);
         }
         body = new Stmt.WhileStmt(condition, body);
-        
+
         if (initializer != null) {
             body = new Stmt.BlockStmt(Arrays.asList(initializer, body));
         }
@@ -362,7 +367,38 @@ public class Parser {
             Expr right = unary();
             return new Expr.UnaryExpr(operation, right);
         }
-        return primary();
+        return prefixOps();
+    }
+
+
+    /**
+     * prefixOps -> ('++' | '--')? postfixOps ;
+     * @return Expression
+     */
+    Expr prefixOps() {
+        if (match(TokenType.INCREMENT, TokenType.DECREMENT)) {
+            Token prefixOp = previous();
+            Expr expr = postfixOps();
+            if (expr instanceof Expr.VariableExpr) {
+                Token token = ((Expr.VariableExpr) expr).getName();
+                return new Expr.PrefixOpExpr(token, prefixOp);
+            }
+        }
+        return postfixOps();
+    }
+
+    /**
+     * postfixOps -> primary ('--' | '++')? ;
+     * @return Expression
+     */
+    Expr postfixOps() {
+        Expr expr = primary();
+        if ((expr instanceof Expr.VariableExpr) && match(TokenType.INCREMENT, TokenType.DECREMENT)) {
+            Token postfixOp = previous();
+            Token token = ((Expr.VariableExpr) expr).getName();
+            return new Expr.PostfixOpExpr(token, postfixOp);
+        }
+        return expr;
     }
 
     /**

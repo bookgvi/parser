@@ -1,0 +1,15 @@
+var a = 2;
+var b = 3;
+
+print --a;
+print b++;
+print b;
+a = 1;
+b = 2;
+var c = ++b + a++;
+print "c = " + c;
+print "a = " + a;
+
+for (var i = 0; i < 3; ++i) {
+    print "i = " + i;
+}

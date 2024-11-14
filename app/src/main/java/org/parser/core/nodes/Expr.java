@@ -167,6 +167,55 @@ public abstract class Expr implements VisitableExpr {
         public final <R, A> A accept(Visitor<R, A> visitor, A... params) {
             return visitor.visit(this, params);
         }
+    }
+
+    public static class PrefixOpExpr extends Expr {
+        private final Token variable;
+        private final Token operation;
+
+        public PrefixOpExpr(Token variable, Token operation) {
+            this.variable = variable;
+            this.operation = operation;
+        }
+
+        public Token getVariable() {
+            return variable;
+        }
+
+        public Token getOperation() {
+            return operation;
+        }
+
+        @SafeVarargs
+        @Override
+        public final <R, A> A accept(Visitor<R, A> visitor, A... params) {
+            return visitor.visit(this, params);
+        }
+
+    }
+
+    public static class PostfixOpExpr extends Expr {
+        private final Token variable;
+        private final Token operation;
+
+        public PostfixOpExpr(Token variable, Token operation) {
+            this.variable = variable;
+            this.operation = operation;
+        }
+
+        public Token getVariable() {
+            return variable;
+        }
+
+        public Token getOperation() {
+            return operation;
+        }
+
+        @SafeVarargs
+        @Override
+        public final <R, A> A accept(Visitor<R, A> visitor, A... params) {
+            return visitor.visit(this, params);
+        }
 
     }
 
@@ -185,6 +234,10 @@ public abstract class Expr implements VisitableExpr {
         A visit(Expr.AssignExpr expr, A... params);
 
         A visit(Expr.LogicalExpr expr, A... params);
+
+        A visit(Expr.PrefixOpExpr expr, A... params);
+
+        A visit(Expr.PostfixOpExpr expr, A... params);
     }
 
 }

@@ -9,6 +9,8 @@ import org.parser.core.nodes.Expr.BinaryExpr;
 import org.parser.core.nodes.Expr.GroupingExpr;
 import org.parser.core.nodes.Expr.LiteralExpr;
 import org.parser.core.nodes.Expr.LogicalExpr;
+import org.parser.core.nodes.Expr.PostfixOpExpr;
+import org.parser.core.nodes.Expr.PrefixOpExpr;
 import org.parser.core.nodes.Expr.UnaryExpr;
 import org.parser.core.nodes.Expr.VariableExpr;
 import org.parser.core.nodes.Stmt;
@@ -50,11 +52,11 @@ public class Interpreter implements Expr.Visitor<Object, Object>, Stmt.Visitor<O
     }
 
     @Override
-	public Object visit(PrintStmt stmt, Object... params) {
+    public Object visit(PrintStmt stmt, Object... params) {
         Object value = evaluate(stmt.getExpression(), params);
         System.out.println(String.valueOf(value));
         return null;
-	}
+    }
 
     @Override
     public Object visit(VarStmt stmt, Object... params) {
@@ -184,7 +186,6 @@ public class Interpreter implements Expr.Visitor<Object, Object>, Stmt.Visitor<O
         return value;
     }
 
-
     @Override
     public Object visit(IfStmt stmt, Object... params) {
         if (isTruthy(stmt.getCondition())) {
@@ -195,7 +196,6 @@ public class Interpreter implements Expr.Visitor<Object, Object>, Stmt.Visitor<O
         return null;
     }
 
-    
     @Override
     public Object visit(LogicalExpr expr, Object... params) {
         Object leftVal = evaluate(expr.getLeft());
@@ -211,8 +211,6 @@ public class Interpreter implements Expr.Visitor<Object, Object>, Stmt.Visitor<O
         return evaluate(expr.getRight(), params);
     }
 
-    
-
     @Override
     public Object visit(WhileStmt stmt, Object... params) {
         Object condition = evaluate(stmt.getConfition(), params);
@@ -221,6 +219,50 @@ public class Interpreter implements Expr.Visitor<Object, Object>, Stmt.Visitor<O
             condition = evaluate(stmt.getConfition(), params);
         }
         return null;
+    }
+
+    @Override
+    public Object visit(PrefixOpExpr expr, Object... params) {
+        Token operation = expr.getOperation();
+        Object value = env.get(expr.getVariable().getLexeme());
+        if (!isNumber(value)) {
+            throw new RuntimeError(expr.getVariable(), "Value must be a number");
+        }
+        return switch (operation.getKind()) {
+            case INCREMENT -> {
+                Double res = (Double) value + 1;
+                env.assign(expr.getVariable(), res);
+                yield res;
+            }
+            case DECREMENT -> {
+                Double res = (Double) value - 1;
+                env.assign(expr.getVariable(), res);
+                yield res;
+            }
+            default -> null;
+        };
+    }
+
+    @Override
+    public Object visit(PostfixOpExpr expr, Object... params) {
+        Token operation = expr.getOperation();
+        Object value = env.get(expr.getVariable().getLexeme());
+        if (!isNumber(value)) {
+            throw new RuntimeError(expr.getVariable(), "Value must be a number");
+        }
+        return switch (operation.getKind()) {
+            case INCREMENT -> {
+                Double res = (Double) value + 1;
+                env.assign(expr.getVariable(), res);
+                yield value;
+            }
+            case DECREMENT -> {
+                Double res = (Double) value - 1;
+                env.assign(expr.getVariable(), res);
+                yield value;
+            }
+            default -> null;
+        };
     }
 
     boolean isNumber(Object value) {

@@ -17,6 +17,8 @@ public enum TokenType {
     EQUAL, EQUAL_EQUAL,
     GREATER, GREATER_EQUAL,
     LESS, LESS_EQUAL,
+    INCREMENT, DECREMENT,
+    
     // Literals.
     IDENTIFIER, STRING, NUMBER,
 
