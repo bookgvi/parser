@@ -91,6 +91,61 @@ public abstract class Stmt implements VisitableStmt {
 
     }
 
+    public static class IfStmt extends Stmt {
+        private final Expr condition;
+        private final Stmt thenStmt;
+        private final Stmt elseStmt;
+
+        public IfStmt(Expr condition, Stmt thenStmt, Stmt elseStmt) {
+            this.condition = condition;
+            this.thenStmt = thenStmt;
+            this.elseStmt = elseStmt;
+        }
+
+        public Expr getCondition() {
+            return condition;
+        }
+
+        public Stmt getThenStmt() {
+            return thenStmt;
+        }
+
+        public Stmt getElseStmt() {
+            return elseStmt;
+        }
+
+        @SafeVarargs
+        @Override
+        public final <R, A> A accept(Visitor<R, A> visitor, A... params) {
+            return visitor.visit(this, params);
+        }
+    }
+
+    public static class WhileStmt extends Stmt {
+        private final Expr confition;
+        private final Stmt body;
+
+        public WhileStmt(Expr confition, Stmt body) {
+            this.confition = confition;
+            this.body = body;
+        }
+
+        public Expr getConfition() {
+            return confition;
+        }
+
+        public Stmt getBody() {
+            return body;
+        }
+
+        @SafeVarargs
+        @Override
+        public final <R, A> A accept(Visitor<R, A> visitor, A... params) {
+            return visitor.visit(this, params);
+        }
+
+    }
+
     @SuppressWarnings("unchecked")
     public static interface Visitor<R, A> {
         A visit(Stmt.ExprStmt stmt, A... params);
@@ -100,5 +155,9 @@ public abstract class Stmt implements VisitableStmt {
         A visit(Stmt.VarStmt stmt, A... params);
 
         A visit(Stmt.BlockStmt stmt, A... params);
+
+        A visit(Stmt.IfStmt stmt, A... params);
+
+        A visit(Stmt.WhileStmt stmt, A... params);
     }
 }

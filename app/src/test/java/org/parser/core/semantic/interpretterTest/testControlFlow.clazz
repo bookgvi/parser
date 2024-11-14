@@ -1,0 +1,26 @@
+print "Control flow tests";
+var i = 0;
+while (true && i < 10) {
+    print "while loop i = " + i;
+    i = i + 1;
+}
+
+i = 0;
+while (true and i < 10) {
+    print "while loop2 i = " + i;
+    i = i + 1;
+}
+
+for (; false || i < 12; i = i + 1) {
+    print "for loop i = " + i;
+}
+
+for (var j = 0; j < 2; j = j + 2) {
+    print "for loop j = " + j;
+}
+
+for (var j = 0; false or j < 2; j = j + 2) {
+    print "for loop2 j = " + j;
+}
+
+print (i);

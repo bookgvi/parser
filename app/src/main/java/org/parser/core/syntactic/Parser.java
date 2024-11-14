@@ -8,6 +8,7 @@ import org.parser.error.RuntimeError;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Optional;
 
 /**
@@ -16,20 +17,25 @@ import java.util.Optional;
  * declaration -> varDeclaration | statement ;
  * varDeclaration -> "var" IDENTIFIER ('=' expression)? ';' ;
  * <p>
- * statement -> exprStmt | printStmt | blockStmt ;
+ * statement -> exprStmt| ifStmt | printStmt | blockStmt| whileStmt forLoopStmt ;
+ * <p>
+ * ifStmt -> "if" '(' expression ')' statement ("else" statement)? ;
  * exprStmt -> expression ';' ;
  * printStmt -> "print" expression ';' ;
  * blockStmt -> '{' declaration* '}'
+ * whileStmt -> "while" '(' expression ')' statement ;
+ * forLoopStmt -> "for" '('(varDeclaration | exprStmt)? ';' expression? ';' expression? ')' statement ;
  * <p>
  * expression -> assignment ;
- * assignment -> IDENTIFIER '=' assignemnt | equality ;
+ * assignment -> IDENTIFIER '=' assignemnt | logic_or ;
+ * logic_or -> logic_and ("or" logic_and)* ;
+ * logic_and -> equality ("and" equality)* ;
  * equality -> comparision (('==' | '!=') comparision)* ;
  * comparision -> term (('>' | '<' | '>=' | '<=') term)* ;
  * term -> factor (('+' | '-') factor)* ;
  * factor -> unary (('*' | '/') unary)* ;
  * unary -> ('!' | '-') unary | primary ;
- * primary -> NUMBER | STRING | "true" | "false" | "nill" | '(' expression ')' |
- * IDENTIFIER ;
+ * primary -> NUMBER | STRING | "true" | "false" | "nill" | '(' expression ')' | IDENTIFIER ;
  */
 public class Parser {
     private final List<Token> tokens;
@@ -97,22 +103,108 @@ public class Parser {
     }
 
     /**
-     * statement -> printStatement | exprStatement ;
+     * statement -> ifStmt | printStmt | blockStmt | exprStmt | forLoopStmt ;
      * 
      * @return Statement
      */
     Stmt statement() {
+        if (match(TokenType.IF)) {
+            return ifStmt();
+        }
         if (match(TokenType.PRINT)) {
             return printStatemnet();
         }
         if (match(TokenType.LEFT_BRACE)) {
             return block();
         }
+        if (match(TokenType.WHILE)) {
+            return whileStmt();
+        }
+        if (match(TokenType.FOR)) {
+            return forLoopStmt();
+        }
         return exprStatemnet();
     }
 
     /**
+     * forLoopStmt -> "for" '(' (varDeclaration | exprStmt)? ';' expression? ';'
+     * expression? ')' statement ;
+     * 
+     * @return Statement
+     */
+    Stmt forLoopStmt() {
+        consume(TokenType.LEFT_PAREN, "Expected '(' after 'for'");
+        Stmt initializer;
+        if (match(TokenType.SEMICOLON)) {
+            initializer = null;
+        } else if (match(TokenType.VAR)) {
+            initializer = varDeclaration();
+        } else {
+            initializer = exprStatemnet();
+        }
+
+        Expr condition = null;
+        if (!match(TokenType.SEMICOLON)) {
+            condition = expression();
+        }
+        consume(TokenType.SEMICOLON, "Expected ';' after loop condition");
+
+        Expr increment = null;
+        if (!match(TokenType.SEMICOLON)) {
+            increment = expression();
+        }
+        consume(TokenType.RIGHT_PAREN, "Expected ')' after 'for' clause");
+
+        Stmt body = statement();
+        if (increment != null) {
+            body = new Stmt.BlockStmt(Arrays.asList(body, new Stmt.ExprStmt(increment)));
+        }
+        if (condition == null) {
+            condition = new Expr.LiteralExpr(true);
+        }
+        body = new Stmt.WhileStmt(condition, body);
+        
+        if (initializer != null) {
+            body = new Stmt.BlockStmt(Arrays.asList(initializer, body));
+        }
+
+        return body;
+    }
+
+    /**
+     * whileStmt -> "while" '(' expression ')' statement ;
+     * 
+     * @return Statement
+     */
+    Stmt whileStmt() {
+        consume(TokenType.LEFT_PAREN, "Expected '(' after 'while' ");
+        Expr condition = expression();
+        consume(TokenType.RIGHT_PAREN, "Expected ')' after while condition");
+        Stmt body = statement();
+
+        return new Stmt.WhileStmt(condition, body);
+    }
+
+    /**
+     * ifStmt -> "if" '(' expression ')' statement ("else" statement)? ;
+     * 
+     * @return Statement
+     */
+    Stmt ifStmt() {
+        consume(TokenType.LEFT_PAREN, "Expected '(' after 'if' ");
+        Expr condition = expression();
+        consume(TokenType.RIGHT_PAREN, "Expected ')' after condition");
+        Stmt thenStmt = statement();
+        Stmt elseStmt = null;
+        if (match(TokenType.ELSE)) {
+            elseStmt = statement();
+        }
+        return new Stmt.IfStmt(condition, thenStmt, elseStmt);
+    }
+
+    /**
      * block -> '{' declaration* '}'
+     * 
      * @return Statement;
      */
     Stmt block() {
@@ -151,12 +243,12 @@ public class Parser {
     }
 
     /**
-     * assignment -> IDENTIFIER '=' assignment | equality ;
+     * assignment -> IDENTIFIER '=' assignment | logic_or ;
      * 
      * @return Expression
      */
     Expr assignment() {
-        Expr expr = equality();
+        Expr expr = logic_or();
         if (match(TokenType.EQUAL)) {
             Token equals = previous();
             Expr value = assignment();
@@ -165,6 +257,36 @@ public class Parser {
                 return new Expr.AssignExpr(name, value);
             }
             throw new RuntimeError(equals, "Invalid assignment target.");
+        }
+        return expr;
+    }
+
+    /**
+     * logic_or -> logic_and ("or" logic_and)* ;
+     * 
+     * @return Expression
+     */
+    Expr logic_or() {
+        Expr expr = logic_and();
+        while (match(TokenType.OR)) {
+            Token operation = previous();
+            Expr right = logic_and();
+            expr = new Expr.LogicalExpr(expr, operation, right);
+        }
+        return expr;
+    }
+
+    /**
+     * logic_and -> equality ("or" equality)* ;
+     * 
+     * @return Expression
+     */
+    Expr logic_and() {
+        Expr expr = equality();
+        while (match(TokenType.AND)) {
+            Token operation = previous();
+            Expr right = equality();
+            expr = new Expr.LogicalExpr(expr, operation, right);
         }
         return expr;
     }
@@ -244,21 +366,26 @@ public class Parser {
     }
 
     /**
-     * primary -> NUMBER | STRING | "true" | "false" | "nil" | '(' expression ')' | IDENTIFIER ;
+     * primary -> NUMBER | STRING | "true" | "false" | "nil" | '(' expression ')' |
+     * IDENTIFIER ;
      * 
      * @return Expression;
      */
     Expr primary() {
-        if (match(TokenType.TRUE)) return new Expr.LiteralExpr(true);
-        if (match(TokenType.FALSE)) return new Expr.LiteralExpr(false);
-        if (match(TokenType.NUMBER, TokenType.STRING)) return new Expr.LiteralExpr(previous().getValue());
+        if (match(TokenType.TRUE))
+            return new Expr.LiteralExpr(true);
+        if (match(TokenType.FALSE))
+            return new Expr.LiteralExpr(false);
+        if (match(TokenType.NUMBER, TokenType.STRING))
+            return new Expr.LiteralExpr(previous().getValue());
         if (match(TokenType.LEFT_PAREN)) {
             Expr expr = expression();
-            consume(TokenType.RIGHT_BRACE, "Expected ')'");
+            consume(TokenType.RIGHT_PAREN, "Expected ')'");
             return new Expr.GroupingExpr(expr);
         }
-        if (match(TokenType.IDENTIFIER)) return new Expr.VariableExpr(previous());
-        return new Expr.LiteralExpr(null);
+        if (match(TokenType.IDENTIFIER))
+            return new Expr.VariableExpr(previous());
+        return null;
     }
 
     Token consume(TokenType type, String msg) {

@@ -24,7 +24,7 @@ public enum TokenType {
     END_OF_LINE_COMMENT, TRADITIONAL_COMMENT,
 
     // Keywords.
-    AND, FALSE, FUN, NIL, OR,
+    AND, FALSE, FUN, NIL, OR, BIT_AND, BIT_OR,
     PRINT, TRUE,
     EOF,
 

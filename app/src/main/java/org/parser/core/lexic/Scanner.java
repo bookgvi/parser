@@ -53,6 +53,8 @@ public class Scanner {
             case '>': addToken(match('=') ? TokenType.GREATER_EQUAL : TokenType.GREATER); break;
             case '<': addToken(match('=') ? TokenType.LESS_EQUAL : TokenType.LESS); break;
             case '=': addToken(match('=') ? TokenType.EQUAL_EQUAL : TokenType.EQUAL); break;
+            case '&': addToken(match('&') ? TokenType.AND : TokenType.BIT_AND); break;
+            case '|': addToken(match('|') ? TokenType.OR : TokenType.BIT_OR); break;
             case '"': string(); break;
             case '\t':
             case '\r':

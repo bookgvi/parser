@@ -4,7 +4,6 @@
 package org.parser;
 
 import org.junit.jupiter.api.Test;
-import org.parser.App;
 
 import static org.junit.jupiter.api.Assertions.*;
 

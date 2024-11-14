@@ -8,15 +8,19 @@ import org.parser.core.nodes.Expr.AssignExpr;
 import org.parser.core.nodes.Expr.BinaryExpr;
 import org.parser.core.nodes.Expr.GroupingExpr;
 import org.parser.core.nodes.Expr.LiteralExpr;
+import org.parser.core.nodes.Expr.LogicalExpr;
 import org.parser.core.nodes.Expr.UnaryExpr;
 import org.parser.core.nodes.Expr.VariableExpr;
 import org.parser.core.nodes.Stmt;
 import org.parser.core.nodes.Stmt.BlockStmt;
 import org.parser.core.nodes.Stmt.ExprStmt;
+import org.parser.core.nodes.Stmt.IfStmt;
 import org.parser.core.nodes.Stmt.PrintStmt;
 import org.parser.core.nodes.Stmt.VarStmt;
+import org.parser.core.nodes.Stmt.WhileStmt;
 import org.parser.error.RuntimeError;
 import org.parser.token.Token;
+import org.parser.token.TokenType;
 
 public class Interpreter implements Expr.Visitor<Object, Object>, Stmt.Visitor<Object, Object> {
 
@@ -178,6 +182,45 @@ public class Interpreter implements Expr.Visitor<Object, Object>, Stmt.Visitor<O
         Object value = evaluate(expr.getValue());
         env.assign(expr.getName(), value);
         return value;
+    }
+
+
+    @Override
+    public Object visit(IfStmt stmt, Object... params) {
+        if (isTruthy(stmt.getCondition())) {
+            execute(stmt.getThenStmt(), params);
+        } else if (stmt.getElseStmt() != null) {
+            execute(stmt.getElseStmt(), params);
+        }
+        return null;
+    }
+
+    
+    @Override
+    public Object visit(LogicalExpr expr, Object... params) {
+        Object leftVal = evaluate(expr.getLeft());
+        if (expr.getOperation().getKind() == TokenType.OR) {
+            if (isTruthy(leftVal)) {
+                return leftVal;
+            }
+        } else {
+            if (!isTruthy(leftVal)) {
+                return leftVal;
+            }
+        }
+        return evaluate(expr.getRight(), params);
+    }
+
+    
+
+    @Override
+    public Object visit(WhileStmt stmt, Object... params) {
+        Object condition = evaluate(stmt.getConfition(), params);
+        while (isTruthy(condition)) {
+            execute(stmt.getBody(), params);
+            condition = evaluate(stmt.getConfition(), params);
+        }
+        return null;
     }
 
     boolean isNumber(Object value) {

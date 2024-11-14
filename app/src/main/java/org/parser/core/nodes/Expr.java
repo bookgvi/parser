@@ -139,6 +139,37 @@ public abstract class Expr implements VisitableExpr {
         }
     }
 
+    public static class LogicalExpr extends Expr {
+        private final Expr left;
+        private final Token operation;
+        private final Expr right;
+
+        public LogicalExpr(Expr left, Token operation, Expr right) {
+            this.left = left;
+            this.operation = operation;
+            this.right = right;
+        }
+
+        public Expr getLeft() {
+            return left;
+        }
+
+        public Token getOperation() {
+            return operation;
+        }
+
+        public Expr getRight() {
+            return right;
+        }
+
+        @SafeVarargs
+        @Override
+        public final <R, A> A accept(Visitor<R, A> visitor, A... params) {
+            return visitor.visit(this, params);
+        }
+
+    }
+
     @SuppressWarnings("unchecked")
     public static interface Visitor<R, A> {
         A visit(Expr.LiteralExpr expr, A... params);
@@ -152,6 +183,8 @@ public abstract class Expr implements VisitableExpr {
         A visit(Expr.VariableExpr expr, A... params);
 
         A visit(Expr.AssignExpr expr, A... params);
+
+        A visit(Expr.LogicalExpr expr, A... params);
     }
 
 }
