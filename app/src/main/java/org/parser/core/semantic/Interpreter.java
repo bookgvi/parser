@@ -46,6 +46,18 @@ public class Interpreter implements Expr.Visitor<Object, Object>, Stmt.Visitor<O
         return expr.accept(this, params);
     }
 
+    public void executeBlock(List<Stmt> statements, Environment environment, Object... params) {
+        Environment prev = env;
+        try {
+            env = environment;
+            for (Stmt statement : statements) {
+                execute(statement, params);
+            }
+        } finally {
+            env = prev;
+        }
+    }
+
     @Override
     public Object visit(ExprStmt stmt, Object... params) {
         return evaluate(stmt.getExpression(), params);
@@ -68,15 +80,7 @@ public class Interpreter implements Expr.Visitor<Object, Object>, Stmt.Visitor<O
 
     @Override
     public Object visit(BlockStmt stmt, Object... params) {
-        Environment prev = env;
-        env = new Environment(prev);
-        try {
-            for (Stmt statement : stmt.getStatements()) {
-                execute(statement, params);
-            }
-        } finally {
-            env = prev;
-        }
+        executeBlock(stmt.getStatements(), new Environment(env), params);
         return null;
     }
 
