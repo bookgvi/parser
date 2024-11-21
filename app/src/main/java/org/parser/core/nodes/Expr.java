@@ -1,5 +1,7 @@
 package org.parser.core.nodes;
 
+import java.util.List;
+
 import org.parser.token.Token;
 
 public abstract class Expr implements VisitableExpr {
@@ -219,6 +221,37 @@ public abstract class Expr implements VisitableExpr {
 
     }
 
+    public static class CallExpr extends Expr {
+        private final Expr callee;
+        private final List<Expr> arguments;
+        private final Token token;
+
+        public CallExpr(Expr callee, List<Expr> arguments, Token token) {
+            this.callee = callee;
+            this.arguments = arguments;
+            this.token = token;
+        }
+
+        public Expr getCallee() {
+            return callee;
+        }
+
+        public List<Expr> getArguments() {
+            return arguments;
+        }
+
+        public Token getToken() {
+            return token;
+        }
+
+        @SafeVarargs
+        @Override
+        public final <R, A> A accept(Visitor<R, A> visitor, A... params) {
+            return visitor.visit(this, params);
+        }
+
+    }
+
     @SuppressWarnings("unchecked")
     public static interface Visitor<R, A> {
         A visit(Expr.LiteralExpr expr, A... params);
@@ -238,6 +271,8 @@ public abstract class Expr implements VisitableExpr {
         A visit(Expr.PrefixOpExpr expr, A... params);
 
         A visit(Expr.PostfixOpExpr expr, A... params);
+
+        A visit(Expr.CallExpr expr, A... params);
     }
 
 }

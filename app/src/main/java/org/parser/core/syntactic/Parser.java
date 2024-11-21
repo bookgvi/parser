@@ -14,10 +14,12 @@ import java.util.Optional;
 /**
  * program -> declaration* EOF ;
  * <p>
- * declaration -> varDeclaration | statement ;
+ * declaration -> varDeclaration | statement | funDecl;
+ * funDecl -> "fun" IDENTIFIER '(' params? ')' blockStmt ;
+ * params -> IDENTIFIER (',' IDENTIFIER)* ;
  * varDeclaration -> "var" IDENTIFIER ('=' expression)? ';' ;
  * <p>
- * statement -> exprStmt| ifStmt | printStmt | blockStmt| whileStmt forLoopStmt
+ * statement -> exprStmt| ifStmt | printStmt | blockStmt| whileStmt | forLoopStmt | returnStmt
  * ;
  * <p>
  * ifStmt -> "if" '(' expression ')' statement ("else" statement)? ;
@@ -25,8 +27,8 @@ import java.util.Optional;
  * printStmt -> "print" expression ';' ;
  * blockStmt -> '{' declaration* '}'
  * whileStmt -> "while" '(' expression ')' statement ;
- * forLoopStmt -> "for" '('(varDeclaration | exprStmt)? ';' expression? ';'
- * expression? ')' statement ;
+ * forLoopStmt -> "for" '('(varDeclaration | exprStmt)? ';' expression? ';' expression? ')' statement ;
+ * returnStmt -> "return" expression? ';' ;
  * <p>
  * expression -> assignment ;
  * assignment -> IDENTIFIER '=' assignemnt | logic_or ;
@@ -38,7 +40,9 @@ import java.util.Optional;
  * factor -> unary (('*' | '/') unary)* ;
  * unary -> ('!' | '-') unary | prefixOps ;
  * prefixOps -> ('--' | '++')? postfixOps ;
- * postfixOps -> primary ('--' | '++')? ;
+ * postfixOps -> callee ('--' | '++')? ;
+ * callee -> primary ('(' arguments? ')')* ;
+ * arguments -> expression (',' expression)* ;
  * primary -> NUMBER | STRING | "true" | "false" | "nill" | '(' expression ')' |
  * IDENTIFIER ;
  */
@@ -84,12 +88,38 @@ public class Parser {
             if (match(TokenType.VAR)) {
                 return varDeclaration();
             }
+            if (match(TokenType.FUN)) {
+                return funDeclaration();
+            }
             return statement();
         } catch (RuntimeError re) {
             System.out.println(re.getMessage());
             synchronize();
             return null;
         }
+    }
+
+    /**
+     * funDecl -> "fun" IDENTIFIER '(' params? ')' blockStmt ;
+     * params -> IDENTIFIER (',' IDENTIFIER)* ;
+     * @return Statement
+     */
+    private Stmt funDeclaration() {
+        Token name = consume(TokenType.IDENTIFIER, "Function name expected");
+        consume(TokenType.LEFT_PAREN, "Expected '(' after function name");
+        List<Token> arguments = new ArrayList<>();
+        if (!check(TokenType.RIGHT_PAREN)) {
+            do {
+                if (arguments.size() > 255) {
+                    throw new RuntimeError("Too many arguments in function declaration");
+                }
+                arguments.add(consume(TokenType.IDENTIFIER, "Expected argument name"));
+            } while (match(TokenType.COMMA));
+        }
+        consume(TokenType.RIGHT_PAREN, "Expected ')' after function arguments");
+        consume(TokenType.LEFT_BRACE, "Expected '{' in function body");
+        List<Stmt> body = block();
+        return new Stmt.FuncStmt(name, arguments, body);
     }
 
     /**
@@ -120,7 +150,7 @@ public class Parser {
             return printStatemnet();
         }
         if (match(TokenType.LEFT_BRACE)) {
-            return block();
+            return new Stmt.BlockStmt(block());
         }
         if (match(TokenType.WHILE)) {
             return whileStmt();
@@ -128,7 +158,23 @@ public class Parser {
         if (match(TokenType.FOR)) {
             return forLoopStmt();
         }
+        if (match(TokenType.RETURN)) {
+            return returnStmt();
+        }
         return exprStatemnet();
+    }
+
+    /**
+     * returnStmt -> "return" expression? ';' ;
+     * @return Statement
+     */
+    private Stmt returnStmt() {
+        Expr value = null;
+        if (!check(TokenType.SEMICOLON)) {
+            value = expression();
+        }
+        consume(TokenType.SEMICOLON, "Expected ';' after return");
+        return new Stmt.ReturnStmt(value);
     }
 
     /**
@@ -212,13 +258,13 @@ public class Parser {
      * 
      * @return Statement;
      */
-    Stmt block() {
+    List<Stmt> block() {
         List<Stmt> statements = new ArrayList<>();
         while (isNotEnd() && !check(TokenType.RIGHT_BRACE)) {
             statements.add(declaration());
         }
         consume(TokenType.RIGHT_BRACE, "Expected '{' after block statement");
-        return new Stmt.BlockStmt(statements);
+        return statements;
     }
 
     /**
@@ -392,13 +438,48 @@ public class Parser {
      * @return Expression
      */
     Expr postfixOps() {
-        Expr expr = primary();
+        Expr expr = callee();
         if ((expr instanceof Expr.VariableExpr) && match(TokenType.INCREMENT, TokenType.DECREMENT)) {
             Token postfixOp = previous();
             Token token = ((Expr.VariableExpr) expr).getName();
             return new Expr.PostfixOpExpr(token, postfixOp);
         }
         return expr;
+    }
+
+    /**
+     * callee -> primary ('(' arguments? ')')* ;
+     * @return Expression
+     */
+    Expr callee() {
+        Expr expr = primary();
+        while (true) {
+            if (match(TokenType.LEFT_PAREN)) {
+                expr = endFuncCall(expr);
+            } else {
+                break;
+            }
+        }
+        return expr;
+    }
+
+    /**
+     * arguments -> expression (',' expression)* ;
+     * @param callee
+     * @return Expression
+     */
+    Expr endFuncCall(Expr callee) {
+        List<Expr> arguments = new ArrayList<>();
+        if (!check(TokenType.RIGHT_PAREN)) {
+            do {
+                if (arguments.size() > 255) {
+                    throw new RuntimeError("Too many arguments");
+                }
+                arguments.add(expression());
+            } while (match(TokenType.COMMA));
+        }
+        Token token = consume(TokenType.RIGHT_PAREN, "Expect ')' after arguments");
+        return new Expr.CallExpr(callee, arguments, token);
     }
 
     /**

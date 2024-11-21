@@ -146,6 +146,55 @@ public abstract class Stmt implements VisitableStmt {
 
     }
 
+    public static class FuncStmt extends Stmt {
+        private final Token name;
+        private final List<Token> params;
+        private final List<Stmt> body;
+
+        public FuncStmt(Token name, List<Token> params, List<Stmt> body) {
+            this.name = name;
+            this.params = params;
+            this.body = body;
+        }
+
+        public Token getName() {
+            return name;
+        }
+
+        public List<Token> getParams() {
+            return params;
+        }
+
+        public List<Stmt> getBody() {
+            return body;
+        }
+
+        @SafeVarargs
+        @Override
+        public final <R, A> A accept(Visitor<R, A> visitor, A... params) {
+            return visitor.visit(this, params);
+        }
+    }
+
+    public static class ReturnStmt extends Stmt {
+        private final Expr value;
+
+        public ReturnStmt(Expr value) {
+            this.value = value;
+        }
+
+        public Expr getValue() {
+            return value;
+        }
+
+        @SafeVarargs
+        @Override
+        public final <R, A> A accept(Visitor<R, A> visitor, A... params) {
+            return visitor.visit(this, params);
+        }
+
+    }
+
     @SuppressWarnings("unchecked")
     public static interface Visitor<R, A> {
         A visit(Stmt.ExprStmt stmt, A... params);
@@ -159,5 +208,9 @@ public abstract class Stmt implements VisitableStmt {
         A visit(Stmt.IfStmt stmt, A... params);
 
         A visit(Stmt.WhileStmt stmt, A... params);
+
+        A visit(Stmt.FuncStmt stmt, A... params);
+
+        A visit(Stmt.ReturnStmt stmt, A... params);
     }
 }
